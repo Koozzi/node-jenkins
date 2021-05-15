@@ -11,11 +11,10 @@ app.use(express.json())
 app.use(cors())
 
 // Start server
+console.log(process.env.MONGODB_CONNECTION_KEY)
 app.listen(5000, () => {
     console.log('The server has started on port 5000')
 });
-
-console.log(process.env.MONGODB_CONNECTION_KEY)
 
 // Set up mongoose
 mongoose.connect(process.env.MONGODB_CONNECTION_KEY, {
