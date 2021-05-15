@@ -1,2 +1,3 @@
 FROM node:15.5.1
-CMD [ "npm", "test"]
+RUN npm install node-fetch
+CMD npm test
