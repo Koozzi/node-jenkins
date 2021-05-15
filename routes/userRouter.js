@@ -13,7 +13,8 @@ router.post("/login", async(req, res) => {
         const user = await User.findOne({ email: email });
         const isMatch = await bcrypt.compare(password, user.password);
 
-        const token = jwt.sign({id: user._id}, process.env.JWT_SECRET)
+        // const token = jwt.sign({id: user._id}, process.env.JWT_SECRET)
+        const token = 'this is not real token'
 
         res.status(200).json({
             token,
