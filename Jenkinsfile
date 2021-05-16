@@ -4,6 +4,7 @@ pipeline{
     environment {
         MONGODB_CONNECTION_KEY = credentials('MONGODB_CONNECTION_KEY')
         JWT_SECRET = credentials('JWT_SECRET')
+        AWS_ACCESS_KEY = credentials('AWS_ACCESS_KEY')
     }
 
     stages {
@@ -59,10 +60,20 @@ pipeline{
 
         stage('Docker run container'){
             steps{
-                echo "Running docker container ..."
+                echo "Running docker container on remote server ..."
                 sh'''
                 docker rm -f `docker ps -aq`
                 docker run -d -p 5000:5000 --env-file .env myserver
+                '''
+            }
+        }
+
+        stage('Remote'){
+            steps{
+                sh'''
+                echo ${AWS_ACCESS_KEY} > AWS_ACCESS_KEY.pem
+                chmod 400 AWS_ACCESS_KEY.pem
+                ssh -i "AWS_ACCESS_KEY.pem" -o StrictHostKeyChecking=no ubuntu@3.35.26.230
                 '''
             }
         }
