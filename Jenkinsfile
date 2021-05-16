@@ -1,45 +1,70 @@
-node {
-    stage('SCM Checkout'){
-        git(branch: 'main', credentialsId : 'my-github', url : 'https://github.com/Koozzi/node-jenkins')
-    }
+pipeline{
+    agent any
     
-    stage('Docker build image'){
-        sh 'docker build -t myserver .'
+    environment {
+        MONGODB_CONNECTION_KEY = credentials('MONGODB_CONNECTION_KEY')
+        JWT_SECRET = credentials('JWT_SECRET')
     }
-    
-    stage('Docker run test container'){
-        withCredentials([
-            string(credentialsId: 'MONGODB_CONNECTION_KEY', variable: 'MONGODB_CONNECTION_KEY'),
-            string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET')
-        ]) {
-            sh'''
-            docker rm -f `docker ps -aq`
-            echo MONGODB_CONNECTION_KEY=${MONGODB_CONNECTION_KEY} > .env
-            JWT_SECRET=${JWT_SECRET} >> .env
-            docker run -d -p 5000:5000 --env-file .env myserver
-            '''
+
+    stages {
+        
+        stage('Make environment file .env'){
+            steps{
+                echo "Making environment firl .env ..."
+                sh'''
+                echo MONGODB_CONNECTION_KEY=${MONGODB_CONNECTION_KEY} > .env
+                JWT_SECRET=${JWT_SECRET} >> .env
+                '''
+            }
         }
-    }
 
-    stage('Unit api test'){
-        sh'''
-        cd test
-        docker build -t test .
-        docker run test
-        '''
-    }
+        stage('SCM Checkout'){
+            steps{
+                git(
+                    branch: 'main',
+                    credentialsId : 'my-github',
+                    url : 'https://github.com/Koozzi/node-jenkins'
+                )
+            }
+        } 
+        
+        stage('Docker Build'){
+            steps{
+                echo "Buliding docker image ... "
+                sh 'docker build -t myserver .'
+            }
+        }
+        
+        stage('Docker run test container'){
+            steps{
+                echo "Running docker container for unit test ..."
+                sh'''
+                docker rm -f `docker ps -aq`
+                docker run -d -p 5000:5000 --env-file .env myserver
+                '''
+            }
+        }
 
-    stage('Docker run container'){
-        withCredentials([
-            string(credentialsId: 'MONGODB_CONNECTION_KEY', variable: 'MONGODB_CONNECTION_KEY'),
-            string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET')
-        ]) {
-            sh'''
-            docker rm -f `docker ps -aq`
-            echo MONGODB_CONNECTION_KEY=${MONGODB_CONNECTION_KEY} > .env
-            JWT_SECRET=${JWT_SECRET} >> .env
-            docker run -d -p 5000:5000 --env-file .env myserver
-            '''
+        stage('Unit api test'){
+            steps{
+                echo "Running unit api test by JEST ..."
+                sh'''
+                cd test
+                docker build -t test .
+                docker run test
+                ''' 
+                echo "Test ended successfully."
+            }
+        }
+
+        stage('Docker run container'){
+            steps{
+                echo "Running docker container ..."
+                sh'''
+                docker rm -f `docker ps -aq`
+                docker run -d -p 5000:5000 --env-file .env myserver
+                '''
+            }
         }
     }
 }
