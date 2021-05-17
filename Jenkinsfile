@@ -31,7 +31,7 @@ pipeline{
         stage('Docker Build'){
             steps{
                 echo "Buliding docker image ... "
-                sh 'docker build -t myserver .'
+                sh 'docker build -t koozzi666/myserver .'
             }
         }
         
@@ -40,7 +40,8 @@ pipeline{
                 echo "Running docker container for unit test ..."
                 sh'''
                 docker rm -f `docker ps -aq`
-                docker run -d -p 5000:5000 --env-file .env myserver
+                docker run -d -p 5000:5000 --env-file .env koozzi666/myserver
+                docker push koozzi666/myserver
                 '''
             }
         }
@@ -62,17 +63,15 @@ pipeline{
                 echo "Running docker container on remote server ..."
                 sh'''
                 docker rm -f `docker ps -aq`
-                docker run -d -p 5000:5000 --env-file .env myserver
+                docker run -d -p 5000:5000 --env-file .env koozzi666/myserver
                 '''
             }
         }
 
-        stage('Remote'){
+        stage('[Remote] Docker run container'){
             steps{
                 sh'''
                 ssh -i "AWS_ACCESS_KEY.pem" -o StrictHostKeyChecking=no ubuntu@3.35.26.230 "bash -s" < myserver.sh
-                ls
-                ls
                 '''
             }
         }

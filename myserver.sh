@@ -1,5 +1,3 @@
 #!/bin/bash
 
-ls
-ls
-ls
+docker pull koozzi666/myserver
