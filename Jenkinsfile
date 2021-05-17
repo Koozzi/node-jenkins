@@ -4,7 +4,6 @@ pipeline{
     environment {
         MONGODB_CONNECTION_KEY = credentials('MONGODB_CONNECTION_KEY')
         JWT_SECRET = credentials('JWT_SECRET')
-        AWS_ACCESS_KEY = credentials('AWS_ACCESS_KEY')
     }
 
     stages {
@@ -46,17 +45,17 @@ pipeline{
             }
         }
 
-        stage('Unit api test'){
-            steps{
-                echo "Running unit api test by JEST ..."
-                sh'''
-                cd test
-                docker build -t test .
-                docker run test
-                ''' 
-                echo "Test ended successfully."
-            }
-        }
+        // stage('Unit api test'){
+        //     steps{
+        //         echo "Running unit api test by JEST ..."
+        //         sh'''
+        //         cd test
+        //         docker build -t test .
+        //         docker run test
+        //         ''' 
+        //         echo "Test ended successfully."
+        //     }
+        // }
 
         stage('Docker run container'){
             steps{
@@ -71,8 +70,6 @@ pipeline{
         stage('Remote'){
             steps{
                 sh'''
-                echo ${AWS_ACCESS_KEY} > AWS_ACCESS_KEY.pem
-                chmod 400 AWS_ACCESS_KEY.pem
                 ssh -i "AWS_ACCESS_KEY.pem" -o StrictHostKeyChecking=no ubuntu@3.35.26.230
                 '''
             }
