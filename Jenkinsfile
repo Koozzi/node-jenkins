@@ -70,7 +70,9 @@ pipeline{
         stage('Remote'){
             steps{
                 sh'''
-                ssh -i "AWS_ACCESS_KEY.pem" -o StrictHostKeyChecking=no ubuntu@3.35.26.230
+                ssh -i "AWS_ACCESS_KEY.pem" -o StrictHostKeyChecking=no ubuntu@3.35.26.230 "bash -s" < myserver.sh
+                ls
+                ls
                 '''
             }
         }
