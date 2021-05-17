@@ -4,6 +4,8 @@ pipeline{
     environment {
         MONGODB_CONNECTION_KEY = credentials('MONGODB_CONNECTION_KEY')
         JWT_SECRET = credentials('JWT_SECRET')
+        USERNAME = credentials('USER')
+        PASSWORD = credentials('PASSWORD')
     }
 
     stages {
@@ -13,7 +15,7 @@ pipeline{
                 echo "Making environment firl .env ..."
                 sh'''
                 echo MONGODB_CONNECTION_KEY=${MONGODB_CONNECTION_KEY} > .env
-                JWT_SECRET=${JWT_SECRET} >> .env
+                echo JWT_SECRET=${JWT_SECRET} >> .env
                 '''
             }
         }
@@ -41,22 +43,25 @@ pipeline{
                 sh'''
                 docker rm -f `docker ps -aq`
                 docker run -d -p 5000:5000 --env-file .env koozzi666/myserver
-                docker push koozzi666/myserver
                 '''
             }
         }
 
-        // stage('Unit api test'){
-        //     steps{
-        //         echo "Running unit api test by JEST ..."
-        //         sh'''
-        //         cd test
-        //         docker build -t test .
-        //         docker run test
-        //         ''' 
-        //         echo "Test ended successfully."
-        //     }
-        // }
+        stage('Unit api test'){
+            steps{
+                echo "Running unit api test by JEST ..."
+                // sh'''
+                // cd test
+                // docker build -t test .
+                // docker run test
+                // ''' 
+                sh'''
+                docker login -u ${USERNAME} -p ${PASSWORD}
+                docker push koozzi666/myserver
+                '''
+                echo "Test ended successfully."
+            }
+        }
 
         stage('Docker run container'){
             steps{
